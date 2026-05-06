@@ -1,8 +1,20 @@
 import express from "express";
+import type { Express, Request, Response } from "express";
 import cors from "cors";
 import { db } from "./dbconnection";
+import type {
+  FormValues,
+  eventDetailsObject,
+  note,
+  notes,
+  vehicle,
+  vehicles,
+  shop,
+  shops,
+  event,
+} from "./types";
 
-const app = express();
+const app: Express = express();
 app.use(express.json());
 app.use(cors());
 const PORT = 8080;
@@ -10,64 +22,30 @@ app.get("/", (req, res) =>
   res.json({ message: "Welcome to the Tom The Shop Logistics server" }),
 );
 
-// POST REQUESTS
-// add a new event
-app.post("/add-event", (req, res) => {
-  try {
-    const form = req.body;
-    const query = db.query(
-      `INSERT INTO tts_events (title, "start", "end", date_added, location, num_of_shops) VALUES ($1, $2, $3, $4, $5, $6)`,
-      [
-        form.title,
-        form.start,
-        form.end,
-        form.date_added,
-        form.location,
-        form.num_of_shops,
-      ],
-    );
-    res.json({ status: "success", values: form });
-  } catch (error) {
-    console.error(`Error: ${error}`);
-  }
-});
-
-// add note to event
-app.post("/add-note", async (req, res) => {
-  try {
-    const form = req.body;
-
-    await db.query(`INSERT INTO notes (note, event_id) VALUES ($1, $2)`, [
-      form.note,
-      form.event_id,
-    ]);
-
-    res.json({ status: "success", values: form });
-  } catch (error) {
-    console.error("Error inserting note:", error);
-    res.status(500).json({ status: "error", message: "Failed to add note" });
-  }
-});
-
 // GET REQUESTS
 // get all events for CalendarView
-app.get("/stored-events", async function (req, res) {
-  try {
-    const query = await db.query(
-      `SELECT id, title, "start", "end" FROM tts_events;`,
-    );
-    const data = res.json(query.rows);
-  } catch (error) {
-    console.error(`Error: ${error}`);
-  }
-});
-// get event for SelectedEventView
-app.post("/selected-event", async function (req, res) {
-  try {
-    const { id } = req.body;
+app.get(
+  "/stored-events",
+  async function (req: Request, res: Response<event[]>) {
+    try {
+      const query = await db.query(
+        `SELECT id, title, "start", "end" FROM tts_events;`,
+      );
+      const data = res.json(query.rows);
+    } catch (error) {
+      console.error(`Error: ${error}`);
+    }
+  },
+);
+// get selected event details
+app.post(
+  "/selected-event",
+  async function (req: Request, res: Response<eventDetailsObject>) {
+    try {
+      const { id } = req.body;
 
-    const query = await db.query(
-      `
+      const query = await db.query(
+        `
       SELECT 
         e.*,
         -- Vehicles
@@ -112,7 +90,63 @@ app.post("/selected-event", async function (req, res) {
       WHERE e.id = $1
       GROUP BY e.id
       `,
-      [id],
+        [id],
+      );
+      return res.json(query.rows[0]);
+    } catch (error) {
+      console.error(`Error: ${error}`);
+      res.status(500).json({ error: "Server error" });
+    }
+  },
+);
+// get ALL event details
+app.get("/all-event-details", async function (req: Request, res: Response) {
+  try {
+    const query = await db.query(
+      `
+      SELECT 
+        e.*,
+        -- Vehicles
+        COALESCE(
+          (
+            SELECT json_agg(jsonb_build_object(
+              'id', v.id,
+              'vehicle_name', v.vehicle_name,
+              'vehicle_reg', v.vehicle_reg
+            ))
+            FROM event_vehicles ev
+            JOIN vehicles v ON v.id = ev.vehicle_id
+            WHERE ev.event_id = e.id
+          ),
+          '[]'
+        ) AS vehicles,
+        -- Shops
+        COALESCE(
+          (
+            SELECT json_agg(jsonb_build_object(
+              'id', s.id,
+              'shop_name', s.shop_name
+            ))
+            FROM event_shops es
+            JOIN shops s ON s.id = es.shop_id
+            WHERE es.event_id = e.id
+          ),
+          '[]'
+        ) AS shops,
+        -- Notes
+        COALESCE(
+          (
+            SELECT json_agg(jsonb_build_object(
+              'note', n.note
+            ))
+            FROM notes n
+            WHERE n.event_id = e.id
+          ),
+          '[]'
+        ) AS notes
+      FROM tts_events e
+        GROUP BY e.id
+      `,
     );
     return res.json(query.rows[0]);
   } catch (error) {
@@ -122,7 +156,7 @@ app.post("/selected-event", async function (req, res) {
 });
 //
 // get list of all shops
-app.get("/get-shops", async function (req, res) {
+app.get("/get-shops", async function (req: Request, res: Response<shops>) {
   try {
     const query = await db.query(`SELECT json_agg(shops) AS shops
 FROM shops;`);
@@ -133,19 +167,64 @@ FROM shops;`);
 });
 //
 // get list of all vehicles
-app.get("/get-vehicles", async function (req, res) {
-  try {
-    const query = await db.query(`SELECT json_agg(vehicles) AS vehicles
+app.get(
+  "/get-vehicles",
+  async function (req: Request, res: Response<vehicles>) {
+    try {
+      const query = await db.query(`SELECT json_agg(vehicles) AS vehicles
 FROM vehicles;`);
-    res.json(query.rows[0].vehicles);
+      res.json(query.rows[0].vehicles);
+    } catch (error) {
+      console.error(`Error: ${error}`);
+    }
+  },
+);
+
+// POST REQUESTS
+// add a new event
+app.post(
+  "/add-event",
+  (req: Request<eventDetailsObject>, res: Response): void => {
+    try {
+      const form = req.body;
+      const query = db.query(
+        `INSERT INTO tts_events (title, "start", "end", date_added, location, num_of_shops) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          form.title,
+          form.start,
+          form.end,
+          form.date_added,
+          form.location,
+          form.num_of_shops,
+        ],
+      );
+      res.json({ status: "success", values: form });
+    } catch (error) {
+      console.error(`Error: ${error}`);
+    }
+  },
+);
+
+// add note to event
+app.post("/add-note", async (req: Request, res: Response) => {
+  try {
+    const form = req.body;
+
+    await db.query(`INSERT INTO notes (note, event_id) VALUES ($1, $2)`, [
+      form.note,
+      form.event_id,
+    ]);
+
+    res.json({ status: "success", values: form });
   } catch (error) {
-    console.error(`Error: ${error}`);
+    console.error("Error inserting note:", error);
+    res.status(500).json({ status: "error", message: "Failed to add note" });
   }
 });
 
 // PUT REQUESTS
 // edit event details
-app.put("/edit-event", async (req, res) => {
+app.put("/edit-event", async (req: Request, res: Response) => {
   const client = await db.connect();
   try {
     const {
