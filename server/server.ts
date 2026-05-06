@@ -142,7 +142,7 @@ app.get("/all-event-details", async function (req: Request, res: Response) {
           '[]'
         ) AS notes
       FROM tts_events e
-        -- GROUP BY e.id  ???????
+      ORDER BY e.start ASC
       `,
     );
     return res.json(query.rows);
