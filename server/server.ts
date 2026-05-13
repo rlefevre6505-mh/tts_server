@@ -235,7 +235,6 @@ app.post("/add-note", async (req: Request, res: Response) => {
 // Delete inventory item
 app.post("/delete-inventory", async (req, res) => {
   const { id } = req.body;
-
   try {
     await db.query("BEGIN");
     await db.query("DELETE FROM equipment_lists WHERE equipment_id = $1", [id]);
@@ -259,7 +258,7 @@ app.post("/update-inventory", async (req: Request, res: Response) => {
   try {
     await db.query(
       `
-      UPDATE equipment_inventory
+      UPDATE full_inventory
       SET equipment_name = $1,
           current_amount = $2
       WHERE id = $3
