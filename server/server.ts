@@ -231,9 +231,7 @@ app.post("/add-note", async (req: Request, res: Response) => {
 });
 //
 // Add inventory item
-//
-// Add inventory item
-app.post("add-inventory-item", async (req: Request, res: Response) => {
+app.post("/add-inventory-item", async (req: Request, res: Response) => {
   try {
     const form = req.body;
     await db.query(
