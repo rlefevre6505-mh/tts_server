@@ -179,7 +179,8 @@ FROM vehicles;`);
 // get full inventory
 app.get("/get-inventory", async function (req: Request, res: Response) {
   try {
-    const query = await db.query(`SELECT * from full_inventory`);
+    const query = await db.query(`SELECT * FROM full_inventory
+      ORDER BY equipment_name ASC`);
     res.json(query.rows);
   } catch (error) {
     console.error(`Error: ${error}`);
