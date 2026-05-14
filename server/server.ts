@@ -232,6 +232,23 @@ app.post("/add-note", async (req: Request, res: Response) => {
 //
 // Add inventory item
 //
+// Add inventory item
+app.post("add-inventory-item", async (req: Request, res: Response) => {
+  try {
+    const form = req.body;
+    await db.query(
+      `INSERT INTO full_inventory (equipment_name, current_amount) VALUES ($1, $2)`,
+      [form.name, form.amount],
+    );
+    res.json({ status: "success", values: form });
+  } catch (error) {
+    console.error("Error inserting item:", error);
+    res
+      .status(500)
+      .json({ status: "error", message: "Failed to add item to inventory" });
+  }
+});
+//
 // Delete inventory item
 app.post("/delete-inventory", async (req, res) => {
   const { id } = req.body;
@@ -247,7 +264,6 @@ app.post("/delete-inventory", async (req, res) => {
     res.status(500).json({ error: "Failed to delete item" });
   }
 });
-
 //
 // Edit inventory item
 app.post("/update-inventory", async (req: Request, res: Response) => {
