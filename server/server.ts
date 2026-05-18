@@ -310,6 +310,7 @@ app.post("/delete-shop", async (req, res) => {
   try {
     await db.query("BEGIN");
     await db.query("DELETE FROM event_shops WHERE shop_id = $1", [id]);
+    await db.query("DELETE FROM equipment_lists WHERE shop_id = $1", [id]);
     await db.query("DELETE FROM shops WHERE id = $1", [id]);
     await db.query("COMMIT");
     res.json({ success: true });
@@ -384,9 +385,8 @@ app.post("/update-vehicle", async (req: Request, res: Response) => {
   try {
     await db.query(
       `
-      UPDATE shops
-      SET vehicle_name = $1,
-      SET vehicle_reg = $2,
+      UPDATE vehicles
+      SET vehicle_name = $1, vehicle_reg = $2
       WHERE id = $3
       `,
       [vehicle_name, vehicle_reg, id],
