@@ -343,21 +343,21 @@ app.post("/update-shop", async (req: Request, res: Response) => {
 });
 //
 // Add vehicle
-// app.post("/add-vehicle", async (req: Request, res: Response) => {
-//   try {
-//     const form = req.body;
-//     await db.query(
-//       `INSERT INTO shops (equipment_name, current_amount) VALUES ($1, $2)`,
-//       [form.name, form.amount],
-//     );
-//     res.json({ status: "success", values: form });
-//   } catch (error) {
-//     console.error("Error inserting item:", error);
-//     res
-//       .status(500)
-//       .json({ status: "error", message: "Failed to add item to inventory" });
-//   }
-// });
+app.post("/add-vehicle", async (req: Request, res: Response) => {
+  try {
+    const form = req.body;
+    await db.query(
+      `INSERT INTO vehicles (vehicle_name, vehicle_reg) VALUES ($1, $2)`,
+      [form.vehicle_name, form.vehicle_reg],
+    );
+    res.json({ status: "success", values: form });
+  } catch (error) {
+    console.error("Error inserting item:", error);
+    res
+      .status(500)
+      .json({ status: "error", message: "Failed to add item to inventory" });
+  }
+});
 //
 // Delete vehicle
 app.post("/delete-vehicle", async (req, res) => {
