@@ -364,7 +364,7 @@ app.post("/delete-vehicle", async (req, res) => {
   const { id } = req.body;
   try {
     await db.query("BEGIN");
-    await db.query("DELETE FROM event_vehicles WHERE shop_id = $1", [id]);
+    await db.query("DELETE FROM event_vehicles WHERE vehicle_id = $1", [id]);
     await db.query("DELETE FROM vehicles WHERE id = $1", [id]);
     await db.query("COMMIT");
     res.json({ success: true });
