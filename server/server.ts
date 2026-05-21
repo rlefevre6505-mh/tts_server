@@ -192,17 +192,26 @@ app.get("/get-inventory", async function (req: Request, res: Response) {
 app.get("/get-equipment-lists", async function (req: Request, res: Response) {
   try {
     const query = await db.query(`
-  SELECT 
-  el.id AS equipment_list_id,
-  el.required_amount,
+SELECT 
   s.id AS shop_id,
   s.shop_name,
-  i.id AS equipment_id,
-  i.equipment_name
-FROM equipment_lists el
-JOIN shops s ON el.shop_id = s.id
-JOIN full_inventory i ON el.equipment_id = i.id
-ORDER BY s.shop_name, i.equipment_name;
+  COALESCE(
+    json_agg(
+      jsonb_build_object(
+        'equipment_list_id', el.id,
+        'equipment_id', i.id,
+        'equipment_name', i.equipment_name,
+        'required_amount', el.required_amount
+      )
+      ORDER BY i.equipment_name
+    ) FILTER (WHERE el.id IS NOT NULL),
+    '[]'
+  ) AS equipment
+FROM shops s
+LEFT JOIN equipment_lists el ON el.shop_id = s.id
+LEFT JOIN full_inventory i ON el.equipment_id = i.id
+GROUP BY s.id, s.shop_name
+ORDER BY s.shop_name;
 `);
     res.json(query.rows);
   } catch (error) {
