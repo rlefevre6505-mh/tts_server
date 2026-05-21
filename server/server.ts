@@ -448,7 +448,7 @@ app.post("/update-vehicle", async (req: Request, res: Response) => {
 });
 //
 // Delete item from equipment list
-app.post("/delete-equipment-list", async (req, res) => {
+app.post("/delete-equipment-list-item", async (req, res) => {
   const { shop_id, equipment_id } = req.body;
   try {
     const result = await db.query(
