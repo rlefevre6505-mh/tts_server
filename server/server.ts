@@ -194,14 +194,14 @@ app.get("/get-equipment-lists", async function (req: Request, res: Response) {
     const query = await db.query(`
   SELECT 
   el.id AS equipment_list_id,
-  el.amount_required,
+  el.required_amount,
   s.id AS shop_id,
   s.shop_name,
-  e.id AS equipment_id,
-  e.equipment_name
+  i.id AS equipment_id,
+  i.equipment_name
 FROM equipment_lists el
 JOIN shops s ON el.shop_id = s.id
-JOIN full_inventory e ON el.equipment_id = e.id
+JOIN full_inventory i ON el.equipment_id = e.id
 ORDER BY s.shop_name, e.equipment_name;
 `);
     res.json(query.rows);
