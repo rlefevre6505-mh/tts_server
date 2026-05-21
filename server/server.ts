@@ -216,6 +216,24 @@ app.post(
   },
 );
 //
+// delete event
+app.post("/delete-event", async (req, res) => {
+  const { id } = req.body;
+  try {
+    await db.query("BEGIN");
+    await db.query("DELETE FROM notes WHERE event_id = $1", [id]);
+    await db.query("DELETE FROM event_shops WHERE event_id = $1", [id]);
+    await db.query("DELETE FROM event_vehicles WHERE event_id = $1", [id]);
+    await db.query("DELETE FROM tts_events WHERE id = $1", [id]);
+    await db.query("COMMIT");
+    res.json({ success: true });
+  } catch (error) {
+    await db.query("ROLLBACK");
+    console.error("Delete error:", error);
+    res.status(500).json({ error: "Failed to delete item" });
+  }
+});
+//
 // add note to event
 app.post("/add-note", async (req: Request, res: Response) => {
   try {
