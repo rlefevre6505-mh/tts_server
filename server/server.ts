@@ -447,6 +447,23 @@ app.post("/update-vehicle", async (req: Request, res: Response) => {
   }
 });
 //
+// Add item to equipment list
+app.post("/add-to-equipment-list", async (req: Request, res: Response) => {
+  try {
+    const form = req.body;
+    await db.query(
+      `INSERT INTO equipment_lists (shop_id, equipment_id, required_amount) VALUES ($1, $2, $3)`,
+      [form.shop_id, form.item_id, form.amount],
+    );
+    res.json({ status: "success", values: form });
+  } catch (error) {
+    console.error("Error inserting item:", error);
+    res
+      .status(500)
+      .json({ status: "error", message: "Failed to add item to list" });
+  }
+});
+//
 // Delete item from equipment list
 app.post("/delete-equipment-list-item", async (req, res) => {
   const { shop_id, equipment_id } = req.body;
