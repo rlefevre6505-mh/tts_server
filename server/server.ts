@@ -446,6 +446,48 @@ app.post("/update-vehicle", async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Failed to update item" });
   }
 });
+//
+// Delete item from equipment list
+app.post("/delete-equipment-list", async (req, res) => {
+  const { shop_id, equipment_id } = req.body;
+  try {
+    const result = await db.query(
+      `
+      DELETE FROM equipment_lists
+      WHERE shop_id = $1 AND equipment_id = $2
+      `,
+      [shop_id, equipment_id],
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Delete error:", error);
+    res
+      .status(500)
+      .json({ error: "Failed to delete item from equipment list" });
+  }
+});
+//
+// Edit equipment-list details
+app.post("/update-equipment-list-item", async (req: Request, res: Response) => {
+  const { id, shop_name } = req.body;
+  if (!id || shop_name == null) {
+    return res.status(400).json({ error: "Missing fields" });
+  }
+  try {
+    await db.query(
+      `
+      UPDATE equipment_lists
+      SET required_amount = $1
+      WHERE id = $2;
+      `,
+      [shop_name, id],
+    );
+    return res.json({ success: true });
+  } catch (error) {
+    console.error("Update error:", error);
+    return res.status(500).json({ error: "Failed to update item" });
+  }
+});
 
 // PUT REQUESTS
 // edit event details
