@@ -468,9 +468,9 @@ app.post("/delete-equipment-list", async (req, res) => {
 });
 //
 // Edit equipment-list details
-app.post("/update-equipment-list-item", async (req: Request, res: Response) => {
-  const { id, shop_name } = req.body;
-  if (!id || shop_name == null) {
+app.post("/update-equipment-list-item", async (req, res) => {
+  const { id, required_amount } = req.body;
+  if (!id || required_amount == null) {
     return res.status(400).json({ error: "Missing fields" });
   }
   try {
@@ -480,7 +480,7 @@ app.post("/update-equipment-list-item", async (req: Request, res: Response) => {
       SET required_amount = $1
       WHERE id = $2;
       `,
-      [shop_name, id],
+      [required_amount, id],
     );
     return res.json({ success: true });
   } catch (error) {
