@@ -221,32 +221,86 @@ ORDER BY s.shop_name;
 });
 
 // POST REQUESTS
-// add a new event
-app.post(
-  "/add-event",
-  (req: Request<eventDetailsObject>, res: Response): void => {
-    try {
-      const form = req.body;
-      const query = db.query(
-        `INSERT INTO tts_events 
-    (title, "start", "end", date_added, location, num_of_shops, num_of_vehicles)
-   VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [
-          form.title,
-          form.start,
-          form.end,
-          form.date_added,
-          form.location,
-          form.num_of_shops,
-          form.num_of_vehicles,
-        ],
-      );
-      res.json({ status: "success", values: form });
-    } catch (error) {
-      console.error(`Error: ${error}`);
+// add event
+// app.post("/add-event", (req: Request, res: Response): void => {
+//   try {
+//     const form = req.body;
+//     const query = db.query(
+//       `INSERT INTO tts_events
+//     (title, "start", "end", date_added, location, num_of_shops, num_of_vehicles)
+//    VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+//       [
+//         form.title,
+//         form.start,
+//         form.end,
+//         form.date_added,
+//         form.location,
+//         form.num_of_shops,
+//         form.num_of_vehicles,
+//       ],
+//     );
+//     res.json({ status: "success", values: form });
+//   } catch (error) {
+//     console.error(`Error: ${error}`);
+//   }
+// });
+app.post("/add-event", async (req: Request, res: Response) => {
+  const client = await db.connect();
+  try {
+    const {
+      title,
+      start,
+      end,
+      date_added,
+      location,
+      num_of_shops,
+      shops,
+      num_of_vehicles,
+      vehicles,
+    } = req.body;
+    await client.query("BEGIN");
+    // 1. Insert main event row and return new event ID
+    const insertEventResult = await client.query(
+      `
+      INSERT INTO tts_events 
+      (title, "start", "end", date_added, location, num_of_shops, num_of_vehicles)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id
+      `,
+      [title, start, end, date_added, location, num_of_shops, num_of_vehicles],
+    );
+    const newEventId = insertEventResult.rows[0].id;
+    // 2. Insert shop assignments (if any)
+    if (Array.isArray(shops) && shops.length > 0) {
+      for (const shopId of shops) {
+        await client.query(
+          `INSERT INTO event_shops (event_id, shop_id) VALUES ($1, $2)`,
+          [newEventId, shopId],
+        );
+      }
     }
-  },
-);
+    // 3. Insert vehicle assignments (if any)
+    if (Array.isArray(vehicles) && vehicles.length > 0) {
+      for (const vehicleId of vehicles) {
+        await client.query(
+          `INSERT INTO event_vehicles (event_id, vehicle_id) VALUES ($1, $2)`,
+          [newEventId, vehicleId],
+        );
+      }
+    }
+    await client.query("COMMIT");
+    res.json({
+      status: "success",
+      event_id: newEventId,
+    });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Error adding event:", error);
+    res.status(500).json({ status: "error", message: "Failed to add event" });
+  } finally {
+    client.release();
+  }
+});
 //
 // delete event
 app.post("/delete-event", async (req, res) => {
