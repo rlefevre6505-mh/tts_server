@@ -176,6 +176,7 @@ FROM vehicles;`);
     }
   },
 );
+//
 // get full inventory
 app.get("/get-inventory", async function (req: Request, res: Response) {
   try {
@@ -219,31 +220,33 @@ ORDER BY s.shop_name;
     res.status(500).json({ error: "Server error" });
   }
 });
+//
+// get required vehicles
+app.get("/get-required-vehicles", async function (req: Request, res: Response) {
+  try {
+    const query = await db.query(`
+SELECT 
+  rv.id AS required_vehicle_id,
+  s.id AS shop_id,
+  s.shop_name,
+  v.id AS vehicle_id,
+  v.vehicle_name
+FROM required_vehicles rv
+JOIN shops s 
+  ON rv.shop_id = s.id
+JOIN vehicles v 
+  ON rv.vehicle_id = v.id
+ORDER BY s.shop_name, v.vehicle_name;
+`);
+    res.json(query.rows);
+  } catch (error) {
+    console.error(`Error: ${error}`);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 // POST REQUESTS
-// add event
-// app.post("/add-event", (req: Request, res: Response): void => {
-//   try {
-//     const form = req.body;
-//     const query = db.query(
-//       `INSERT INTO tts_events
-//     (title, "start", "end", date_added, location, num_of_shops, num_of_vehicles)
-//    VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-//       [
-//         form.title,
-//         form.start,
-//         form.end,
-//         form.date_added,
-//         form.location,
-//         form.num_of_shops,
-//         form.num_of_vehicles,
-//       ],
-//     );
-//     res.json({ status: "success", values: form });
-//   } catch (error) {
-//     console.error(`Error: ${error}`);
-//   }
-// });
+//
 app.post("/add-event", async (req: Request, res: Response) => {
   const client = await db.connect();
   try {
