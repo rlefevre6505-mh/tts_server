@@ -244,6 +244,19 @@ ORDER BY s.shop_name, v.vehicle_name;
     res.status(500).json({ error: "Server error" });
   }
 });
+//
+// Delete vehicle requirement
+app.post("/delete-requirement", async (req, res) => {
+  const { id } = req.body;
+  try {
+    await db.query("DELETE FROM required_vehicles WHERE id = $1", [id]);
+    res.json({ success: true });
+  } catch (error) {
+    await db.query("ROLLBACK");
+    console.error("Delete error:", error);
+    res.status(500).json({ error: "Failed to delete requirement" });
+  }
+});
 
 // POST REQUESTS
 //
