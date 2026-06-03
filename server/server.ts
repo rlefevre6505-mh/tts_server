@@ -257,6 +257,23 @@ app.post("/delete-requirement", async (req, res) => {
     res.status(500).json({ error: "Failed to delete requirement" });
   }
 });
+//
+// add vehicle requirement
+app.post("/add-required-vehicle", async (req: Request, res: Response) => {
+  try {
+    const form = req.body;
+    await db.query(
+      `INSERT INTO required_vehicles (shop_id, vehicle_id) VALUES ($1, $2)`,
+      [form.shop_id, form.vehicle_id],
+    );
+    res.json({ status: "success", values: form });
+  } catch (error) {
+    console.error("Error inserting item:", error);
+    res
+      .status(500)
+      .json({ status: "error", message: "Failed to add vehicle requirement" });
+  }
+});
 
 // POST REQUESTS
 //
