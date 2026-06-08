@@ -2,6 +2,7 @@ import express from "express";
 import type { Express, Request, Response } from "express";
 import cors from "cors";
 import { db } from "./dbconnection";
+import { Resend } from "resend";
 import type {
   FormValues,
   eventDetailsObject,
@@ -655,6 +656,19 @@ app.put("/edit-event", async (req: Request, res: Response) => {
   } finally {
     client.release();
   }
+});
+
+// resend
+const resend = new Resend(process.env.RESEND_API_KEY);
+//
+app.post("/email", async (req: Request, res: Response) => {
+  const form = req.body;
+  await resend.emails.send({
+    from: "<onboarding@resend.dev>",
+    to: "tomtheshopsupport@gmail.com",
+    subject: "Tom The Shop Support",
+    react: form,
+  });
 });
 
 //START SERVER
