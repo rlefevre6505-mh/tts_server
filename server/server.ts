@@ -662,12 +662,17 @@ app.put("/edit-event", async (req: Request, res: Response) => {
 const resend = new Resend(process.env.RESEND_API_KEY);
 //
 app.post("/email", async (req: Request, res: Response) => {
-  const form = req.body;
+  const { name, email, message } = req.body;
   await resend.emails.send({
     from: "<onboarding@resend.dev>",
-    to: "tomtheshopsupport@gmail.com",
+    // to: "tomtheshopsupport@gmail.com",
+    to: `${process.env.SUPPORT_EMAIL}`,
     subject: "Tom The Shop Support",
-    react: form,
+    html: `
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Message:</strong> ${message}</p>
+    `,
   });
 });
 
