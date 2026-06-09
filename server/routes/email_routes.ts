@@ -7,7 +7,7 @@ const emailRouter = Router();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // React Email with Resend
-emailRouter.post("/email", async (req: Request, res: Response) => {
+emailRouter.post("/support", async (req: Request, res: Response) => {
   try {
     const { name, email, message } = req.body;
     const data = await resend.emails.send({
