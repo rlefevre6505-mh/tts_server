@@ -2,10 +2,10 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { db } from "../dbconnection";
 import type { event } from "../types";
-const router = Router();
+const eventRouter = Router();
 
 // get basic event details for CalendarView
-router.get(
+eventRouter.get(
   "/stored-events",
   async function (req: Request, res: Response<event[]>) {
     try {
@@ -20,11 +20,13 @@ router.get(
 );
 
 // get selected event details
-router.post("/selected-event", async function (req: Request, res: Response) {
-  try {
-    const { id } = req.body;
-    const query = await db.query(
-      `
+eventRouter.post(
+  "/selected-event",
+  async function (req: Request, res: Response) {
+    try {
+      const { id } = req.body;
+      const query = await db.query(
+        `
       SELECT 
         e.*,
         -- Vehicles
@@ -69,20 +71,23 @@ router.post("/selected-event", async function (req: Request, res: Response) {
       WHERE e.id = $1
       GROUP BY e.id
       `,
-      [id],
-    );
-    return res.json(query.rows[0]);
-  } catch (error) {
-    console.error(`Error: ${error}`);
-    res.status(500).json({ error: "Server error" });
-  }
-});
+        [id],
+      );
+      return res.json(query.rows[0]);
+    } catch (error) {
+      console.error(`Error: ${error}`);
+      res.status(500).json({ error: "Server error" });
+    }
+  },
+);
 
 // get full event details
-router.get("/all-event-details", async function (req: Request, res: Response) {
-  try {
-    const query = await db.query(
-      `
+eventRouter.get(
+  "/all-event-details",
+  async function (req: Request, res: Response) {
+    try {
+      const query = await db.query(
+        `
       SELECT 
         e.*,
         -- Vehicles
@@ -126,16 +131,17 @@ router.get("/all-event-details", async function (req: Request, res: Response) {
       FROM tts_events e
       ORDER BY e.start ASC
       `,
-    );
-    return res.json(query.rows);
-  } catch (error) {
-    console.error(`Error: ${error}`);
-    res.status(500).json({ error: "Server error" });
-  }
-});
+      );
+      return res.json(query.rows);
+    } catch (error) {
+      console.error(`Error: ${error}`);
+      res.status(500).json({ error: "Server error" });
+    }
+  },
+);
 
 // edit event details
-router.put("/edit-event", async (req: Request, res: Response) => {
+eventRouter.put("/edit-event", async (req: Request, res: Response) => {
   const client = await db.connect();
   try {
     const {
@@ -198,7 +204,7 @@ router.put("/edit-event", async (req: Request, res: Response) => {
 });
 
 // add event
-router.post("/add-event", async (req: Request, res: Response) => {
+eventRouter.post("/add-event", async (req: Request, res: Response) => {
   const client = await db.connect();
   try {
     const {
@@ -257,7 +263,7 @@ router.post("/add-event", async (req: Request, res: Response) => {
 });
 
 // delete event
-router.post("/delete-event", async (req, res) => {
+eventRouter.post("/delete-event", async (req, res) => {
   const { id } = req.body;
   try {
     await db.query("BEGIN");
@@ -275,7 +281,7 @@ router.post("/delete-event", async (req, res) => {
 });
 
 // add note to event
-router.post("/add-note", async (req: Request, res: Response) => {
+eventRouter.post("/add-note", async (req: Request, res: Response) => {
   try {
     const form = req.body;
     await db.query(`INSERT INTO notes (note, event_id) VALUES ($1, $2)`, [
@@ -289,4 +295,4 @@ router.post("/add-note", async (req: Request, res: Response) => {
   }
 });
 
-export default router;
+export default eventRouter;

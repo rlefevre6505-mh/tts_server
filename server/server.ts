@@ -1,11 +1,19 @@
-import express from "express";
-import type { Express, Request, Response } from "express";
+import express, { type Express } from "express";
 import cors from "cors";
+import emailRouter from "./routes/email_routes";
+import equipmentRouter from "./routes/equipment_routes";
+import eventRouter from "./routes/event_routes";
+import shopRouter from "./routes/shop_routes";
+import vehicleRouter from "./routes/vehicle_routes";
 
 const app: Express = express();
 app.use(express.json());
 app.use(cors());
-app.use();
+app.use("/email", emailRouter);
+app.use("/equipment", equipmentRouter);
+app.use("/event", eventRouter);
+app.use("/shop", shopRouter);
+app.use("/vehicle", vehicleRouter);
 
 const PORT = 8080;
 app.get("/", (req, res) =>

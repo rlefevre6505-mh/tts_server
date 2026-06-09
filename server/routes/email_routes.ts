@@ -2,12 +2,12 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 // import type {} from "../types";
 import { Resend } from "resend";
-const router = Router();
+const emailRouter = Router();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // React Email with Resend
-router.post("/email", async (req: Request, res: Response) => {
+emailRouter.post("/email", async (req: Request, res: Response) => {
   try {
     const { name, email, message } = req.body;
     const data = await resend.emails.send({
@@ -27,4 +27,4 @@ router.post("/email", async (req: Request, res: Response) => {
   }
 });
 
-export default router;
+export default emailRouter;

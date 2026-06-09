@@ -2,21 +2,24 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { db } from "../dbconnection";
 import type { shops } from "../types";
-const router = Router();
+const shopRouter = Router();
 
 // get list of all shops
-router.get("/get-shops", async function (req: Request, res: Response<shops>) {
-  try {
-    const query = await db.query(`SELECT json_agg(shops) AS shops
+shopRouter.get(
+  "/get-shops",
+  async function (req: Request, res: Response<shops>) {
+    try {
+      const query = await db.query(`SELECT json_agg(shops) AS shops
 FROM shops;`);
-    res.json(query.rows[0].shops);
-  } catch (error) {
-    console.error(`Error: ${error}`);
-  }
-});
+      res.json(query.rows[0].shops);
+    } catch (error) {
+      console.error(`Error: ${error}`);
+    }
+  },
+);
 
 // Add shop
-router.post("/add-shop", async (req: Request, res: Response) => {
+shopRouter.post("/add-shop", async (req: Request, res: Response) => {
   try {
     const form = req.body;
     await db.query(`INSERT INTO shops (shop_name) VALUES ($1)`, [
@@ -32,7 +35,7 @@ router.post("/add-shop", async (req: Request, res: Response) => {
 });
 
 // Edit shop details
-router.post("/update-shop", async (req: Request, res: Response) => {
+shopRouter.post("/update-shop", async (req: Request, res: Response) => {
   const { id, shop_name } = req.body;
   if (!id || shop_name == null) {
     return res.status(400).json({ error: "Missing fields" });
@@ -54,7 +57,7 @@ router.post("/update-shop", async (req: Request, res: Response) => {
 });
 
 // Delete shop
-router.post("/delete-shop", async (req, res) => {
+shopRouter.post("/delete-shop", async (req, res) => {
   const { id } = req.body;
   try {
     await db.query("BEGIN");
@@ -69,4 +72,4 @@ router.post("/delete-shop", async (req, res) => {
     res.status(500).json({ error: "Failed to delete item" });
   }
 });
-export default router;
+export default shopRouter;
