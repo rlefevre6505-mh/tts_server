@@ -11,7 +11,7 @@ emailRouter.post("/support", async (req: Request, res: Response) => {
   try {
     const { name, email, message } = req.body;
     const data = await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: `${process.env.CUSTOM_DOMAIN}`,
       to: `${process.env.SUPPORT_EMAIL}`,
       subject: "Tom The Shop Support",
       html: `
