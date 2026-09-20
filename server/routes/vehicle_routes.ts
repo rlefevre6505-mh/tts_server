@@ -7,13 +7,19 @@ const vehicleRouter = Router();
 // get list of all vehicles
 vehicleRouter.get(
   "/get-vehicles",
-  async function (req: Request, res: Response<vehicles>) {
+  async function (req: Request, res: Response) {
     try {
       const query = await db.query(`SELECT json_agg(vehicles) AS vehicles
 FROM vehicles;`);
       res.json(query.rows[0].vehicles);
-    } catch (error) {
-      console.error(`Error: ${error}`);
+    } catch (error: any) {
+      console.error("Error getting all vehicles data:", error);
+      res.status(500).json({
+        status: "error",
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+      });
     }
   },
 );
@@ -27,11 +33,14 @@ vehicleRouter.post("/add-vehicle", async (req: Request, res: Response) => {
       [form.vehicle_name, form.vehicle_reg],
     );
     res.json({ status: "success", values: form });
-  } catch (error) {
-    console.error("Error inserting item:", error);
-    res
-      .status(500)
-      .json({ status: "error", message: "Failed to add item to inventory" });
+  } catch (error: any) {
+    console.error("Error adding vehicle:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
   }
 });
 
@@ -51,9 +60,14 @@ vehicleRouter.post("/update-vehicle", async (req: Request, res: Response) => {
       [vehicle_name, vehicle_reg, id],
     );
     return res.json({ success: true });
-  } catch (error) {
-    console.error("Update error:", error);
-    return res.status(500).json({ error: "Failed to update item" });
+  } catch (error: any) {
+    console.error("Error editing vehicle details:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
   }
 });
 
@@ -66,10 +80,15 @@ vehicleRouter.post("/delete-vehicle", async (req, res) => {
     await db.query("DELETE FROM vehicles WHERE id = $1", [id]);
     await db.query("COMMIT");
     res.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Error getting shop data:", error);
     await db.query("ROLLBACK");
-    console.error("Delete error:", error);
-    res.status(500).json({ error: "Failed to delete item" });
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
   }
 });
 
@@ -93,9 +112,14 @@ JOIN vehicles v
 ORDER BY s.shop_name, v.vehicle_name;
 `);
       res.json(query.rows);
-    } catch (error) {
-      console.error(`Error: ${error}`);
-      res.status(500).json({ error: "Server error" });
+    } catch (error: any) {
+      console.error("Error fetching required vehicle data:", error);
+      res.status(500).json({
+        status: "error",
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+      });
     }
   },
 );
@@ -111,11 +135,13 @@ vehicleRouter.post(
         [form.shop_id, form.vehicle_id],
       );
       res.json({ status: "success", values: form });
-    } catch (error) {
-      console.error("Error inserting item:", error);
+    } catch (error: any) {
+      console.error("Error adding vehicle requirement:", error);
       res.status(500).json({
         status: "error",
-        message: "Failed to add vehicle requirement",
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
       });
     }
   },
@@ -127,10 +153,15 @@ vehicleRouter.post("/delete-requirement", async (req, res) => {
   try {
     await db.query("DELETE FROM required_vehicles WHERE id = $1", [id]);
     res.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Error deleting vehicle data:", error);
     await db.query("ROLLBACK");
-    console.error("Delete error:", error);
-    res.status(500).json({ error: "Failed to delete requirement" });
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
   }
 });
 
