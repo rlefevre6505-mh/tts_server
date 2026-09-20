@@ -5,18 +5,21 @@ import type { shops } from "../types";
 const shopRouter = Router();
 
 // get list of all shops
-shopRouter.get(
-  "/get-shops",
-  async function (req: Request, res: Response<shops>) {
-    try {
-      const query = await db.query(`SELECT json_agg(shops) AS shops
+shopRouter.get("/get-shops", async function (req: Request, res: Response) {
+  try {
+    const query = await db.query(`SELECT json_agg(shops) AS shops
 FROM shops;`);
-      res.json(query.rows[0].shops);
-    } catch (error) {
-      console.error(`Error: ${error}`);
-    }
-  },
-);
+    res.json(query.rows[0].shops);
+  } catch (error: any) {
+    console.error("Error getting shop data:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
+  }
+});
 
 // Add shop
 shopRouter.post("/add-shop", async (req: Request, res: Response) => {
@@ -26,11 +29,14 @@ shopRouter.post("/add-shop", async (req: Request, res: Response) => {
       form.shop_name,
     ]);
     res.json({ status: "success", values: form });
-  } catch (error) {
-    console.error("Error inserting item:", error);
-    res
-      .status(500)
-      .json({ status: "error", message: "Failed to add item to inventory" });
+  } catch (error: any) {
+    console.error("Error adding shop:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
   }
 });
 
@@ -50,9 +56,14 @@ shopRouter.post("/update-shop", async (req: Request, res: Response) => {
       [shop_name, id],
     );
     return res.json({ success: true });
-  } catch (error) {
-    console.error("Update error:", error);
-    return res.status(500).json({ error: "Failed to update item" });
+  } catch (error: any) {
+    console.error("Error updating shop data:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
   }
 });
 
@@ -66,10 +77,14 @@ shopRouter.post("/delete-shop", async (req, res) => {
     await db.query("DELETE FROM shops WHERE id = $1", [id]);
     await db.query("COMMIT");
     res.json({ success: true });
-  } catch (error) {
-    await db.query("ROLLBACK");
-    console.error("Delete error:", error);
-    res.status(500).json({ error: "Failed to delete item" });
+  } catch (error: any) {
+    console.error("Error deleting shop data:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
   }
 });
 export default shopRouter;

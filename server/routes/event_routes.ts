@@ -5,19 +5,22 @@ import type { event } from "../types";
 const eventRouter = Router();
 
 // get basic event details for CalendarView
-eventRouter.get(
-  "/stored-events",
-  async function (req: Request, res: Response<event[]>) {
-    try {
-      const query = await db.query(
-        `SELECT id, title, "start", "end" FROM tts_events;`,
-      );
-      const data = res.json(query.rows);
-    } catch (error) {
-      console.error(`Error: ${error}`);
-    }
-  },
-);
+eventRouter.get("/stored-events", async function (req: Request, res: Response) {
+  try {
+    const query = await db.query(
+      `SELECT id, title, "start", "end" FROM tts_events;`,
+    );
+    const data = res.json(query.rows);
+  } catch (error: any) {
+    console.error("Error getting events data:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
+  }
+});
 
 // get selected event details
 eventRouter.post(
@@ -74,9 +77,14 @@ eventRouter.post(
         [id],
       );
       return res.json(query.rows[0]);
-    } catch (error) {
-      console.error(`Error: ${error}`);
-      res.status(500).json({ error: "Server error" });
+    } catch (error: any) {
+      console.error("Error fetching selected event data:", error);
+      res.status(500).json({
+        status: "error",
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+      });
     }
   },
 );
@@ -133,9 +141,14 @@ eventRouter.get(
       `,
       );
       return res.json(query.rows);
-    } catch (error) {
-      console.error(`Error: ${error}`);
-      res.status(500).json({ error: "Server error" });
+    } catch (error: any) {
+      console.error("Error getting event details data:", error);
+      res.status(500).json({
+        status: "error",
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+      });
     }
   },
 );
@@ -194,12 +207,14 @@ eventRouter.put("/edit-event", async (req: Request, res: Response) => {
     }
     await client.query("COMMIT");
     res.json({ status: "success" });
-  } catch (error) {
-    await client.query("ROLLBACK");
-    console.error("Error editing event:", error);
-    res.status(500).json({ status: "error", message: "Failed to edit event" });
-  } finally {
-    client.release();
+  } catch (error: any) {
+    console.error("Error editing event data:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
   }
 });
 
@@ -253,12 +268,15 @@ eventRouter.post("/add-event", async (req: Request, res: Response) => {
       status: "success",
       event_id: newEventId,
     });
-  } catch (error) {
+  } catch (error: any) {
     await client.query("ROLLBACK");
     console.error("Error adding event:", error);
-    res.status(500).json({ status: "error", message: "Failed to add event" });
-  } finally {
-    client.release();
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
   }
 });
 
@@ -273,10 +291,15 @@ eventRouter.post("/delete-event", async (req, res) => {
     await db.query("DELETE FROM tts_events WHERE id = $1", [id]);
     await db.query("COMMIT");
     res.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     await db.query("ROLLBACK");
-    console.error("Delete error:", error);
-    res.status(500).json({ error: "Failed to delete item" });
+    console.error("Error deleting event:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
   }
 });
 
@@ -289,9 +312,14 @@ eventRouter.post("/add-note", async (req: Request, res: Response) => {
       form.event_id,
     ]);
     res.json({ status: "success", values: form });
-  } catch (error) {
-    console.error("Error inserting note:", error);
-    res.status(500).json({ status: "error", message: "Failed to add note" });
+  } catch (error: any) {
+    console.error("Error addding note to event:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
   }
 });
 

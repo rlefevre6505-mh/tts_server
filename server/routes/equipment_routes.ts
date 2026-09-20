@@ -12,9 +12,14 @@ equipmentRouter.get(
       const query = await db.query(`SELECT * FROM full_inventory
       ORDER BY equipment_name ASC`);
       res.json(query.rows);
-    } catch (error) {
-      console.error(`Error: ${error}`);
-      res.status(500).json({ error: "Server error" });
+    } catch (error: any) {
+      console.error("Error fetching full inventory:", error);
+      res.status(500).json({
+        status: "error",
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+      });
     }
   },
 );
@@ -47,9 +52,14 @@ GROUP BY s.id, s.shop_name
 ORDER BY s.shop_name;
 `);
       res.json(query.rows);
-    } catch (error) {
-      console.error(`Error: ${error}`);
-      res.status(500).json({ error: "Server error" });
+    } catch (error: any) {
+      console.error("Error fetching equipment lists:", error);
+      res.status(500).json({
+        status: "error",
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+      });
     }
   },
 );
@@ -65,11 +75,14 @@ equipmentRouter.post(
         [form.shop_id, form.item_id, form.amount],
       );
       res.json({ status: "success", values: form });
-    } catch (error) {
-      console.error("Error inserting item:", error);
-      res
-        .status(500)
-        .json({ status: "error", message: "Failed to add item to list" });
+    } catch (error: any) {
+      console.error("Error adding item to equipment list:", error);
+      res.status(500).json({
+        status: "error",
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+      });
     }
   },
 );
@@ -90,9 +103,14 @@ equipmentRouter.post("/update-equipment-list-item", async (req, res) => {
       [required_amount, id],
     );
     return res.json({ success: true });
-  } catch (error) {
-    console.error("Update error:", error);
-    return res.status(500).json({ error: "Failed to update item" });
+  } catch (error: any) {
+    console.error("Error editing equipment list details:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
   }
 });
 
@@ -108,11 +126,14 @@ equipmentRouter.post("/delete-equipment-list-item", async (req, res) => {
       [shop_id, equipment_id],
     );
     res.json({ success: true });
-  } catch (error) {
-    console.error("Delete error:", error);
-    res
-      .status(500)
-      .json({ error: "Failed to delete item from equipment list" });
+  } catch (error: any) {
+    console.error("Error deleting item from equipment list:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+    });
   }
 });
 
@@ -127,11 +148,14 @@ equipmentRouter.post(
         [form.name, form.amount],
       );
       res.json({ status: "success", values: form });
-    } catch (error) {
-      console.error("Error inserting item:", error);
-      res
-        .status(500)
-        .json({ status: "error", message: "Failed to add item to inventory" });
+    } catch (error: any) {
+      console.error("Error adding inventory item:", error);
+      res.status(500).json({
+        status: "error",
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+      });
     }
   },
 );
@@ -155,9 +179,14 @@ equipmentRouter.post(
         [equipment_name, current_amount, id],
       );
       return res.json({ success: true });
-    } catch (error) {
-      console.error("Update error:", error);
-      return res.status(500).json({ error: "Failed to update item" });
+    } catch (error: any) {
+      console.error("Error editing inventory item:", error);
+      res.status(500).json({
+        status: "error",
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+      });
     }
   },
 );
@@ -175,10 +204,14 @@ equipmentRouter.post(
       await db.query("DELETE FROM full_inventory WHERE id = $1", [id]);
       await db.query("COMMIT");
       res.json({ success: true });
-    } catch (error) {
-      await db.query("ROLLBACK");
-      console.error("Delete error:", error);
-      res.status(500).json({ error: "Failed to delete item" });
+    } catch (error: any) {
+      console.error("Error deleting inventory item:", error);
+      res.status(500).json({
+        status: "error",
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+      });
     }
   },
 );
